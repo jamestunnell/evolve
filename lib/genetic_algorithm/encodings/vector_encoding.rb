@@ -1,4 +1,4 @@
-module GeneticAlgorithms
+module GeneticAlgorithm
   module Encodings
     class VectorEncoding
       def initialize limits
