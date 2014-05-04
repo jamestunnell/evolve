@@ -1,26 +1,28 @@
 module GeneticAlgorithm
   class Fitness
+    include Comparable
+    
     attr_reader :value
-    
-    def initialize value, bigger_is_better
+    def initialize value
       @value = value
-      @bigger_is_better = bigger_is_better
     end
-    
+  end
+  
+  class FitnessTowardZero < Fitness
     def <=> other
-      if @bigger_is_better
-        @value <=> other.value
-      else
-        -(@value <=> other.value)
-      end
+      @value.abs < other.value.abs
     end
-    
-    def self.bigger_is_better value
-      Fitness.new(value, true)
+  end
+  
+  class FitnessTowardInfinity < Fitness
+    def <=> other
+      @value > other.value
     end
-    
-    def self.smaller_is_better value
-      Fitness.new(value, false)
+  end
+  
+  class FitnessTowardNegativeInfinity < Fitness
+    def <=> other
+      @value < other.value
     end
   end
 end
