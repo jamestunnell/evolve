@@ -12,6 +12,7 @@ module GeneticAlgorithm
       def evolve population
         population.sort
         children = self.breed(population)
+        n_children = @crossover_fraction * population.size
         elite = population.pop(population.size - n_children)
         return children + elite
       end
