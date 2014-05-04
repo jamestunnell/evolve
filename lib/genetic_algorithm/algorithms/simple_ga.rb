@@ -3,7 +3,7 @@ module GeneticAlgorithm
     # Maintains a constant population between generations.
     # Performs selection, breeding, and mutation.
     class SimpleGA
-      def initialize selector:, crossover_fraction:, mutation_rate:
+      def initialize selector, crossover_fraction, mutation_rate
         @selector = selector
         @crossover_fraction = crossover_fraction
         @mutation_rate = mutation_rate
