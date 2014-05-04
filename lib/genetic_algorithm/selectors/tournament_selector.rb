@@ -17,7 +17,7 @@ module GeneticAlgorithm
       end
       
       def compete(competitors)
-        competitors.sort
+        competitors.sort!
         winner = nil
         p = @p
         i = competitors.size - 1
