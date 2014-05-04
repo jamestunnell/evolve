@@ -1,5 +1,7 @@
 module GeneticAlgorithm
   class Fitness
+    attr_reader :value
+    
     def initialize value, bigger_is_better
       @value = value
       @bigger_is_better = bigger_is_better
