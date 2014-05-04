@@ -4,6 +4,8 @@ module GeneticAlgorithm
   end
   
   class FitnessTowardZero < Fitness
+    include Comparable
+    
     def initialize value
       @value = value
     end
@@ -14,6 +16,8 @@ module GeneticAlgorithm
   end
   
   class FitnessTowardInfinity < Fitness
+    include Comparable
+    
     def initialize value
       @value = value
     end
@@ -24,6 +28,8 @@ module GeneticAlgorithm
   end
   
   class FitnessTowardNegativeInfinity < Fitness
+    include Comparable
+    
     def initialize value
       @value = value
     end
