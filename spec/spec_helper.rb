@@ -1,4 +1,4 @@
 require 'rspec'
-require 'genetic_algorithm/version'
+require 'genetic_algorithm'
 
 include GeneticAlgorithm
