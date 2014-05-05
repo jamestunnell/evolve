@@ -19,7 +19,7 @@ module GeneticAlgorithm
         # breed children
         children = []
         while children.size < n_children
-          mom, dad = @selector.select(population.individuals,2)
+          mom, dad = @selector.select(population,2)
           child1, child2 = mom.cross(dad)
           child1.mutate if rand < @mutation_rate
           child1.mutate if rand < @mutation_rate
