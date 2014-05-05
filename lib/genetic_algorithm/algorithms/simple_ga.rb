@@ -27,7 +27,12 @@ module GeneticAlgorithm
           children.push(child2)
         end
         
-        population.replace_worst(children)
+        # for odd number of children
+        if children.size > n_children
+          children.pop
+        end
+        
+        population[0...children.size] = children
         population.sort!
         if block_given?
           yield population
