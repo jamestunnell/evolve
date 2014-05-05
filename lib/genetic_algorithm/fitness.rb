@@ -11,7 +11,7 @@ module GeneticAlgorithm
     end
     
     def <=> other
-      @value.abs < other.value.abs
+      @value.abs <=> other.value.abs
     end
   end
   
@@ -23,7 +23,7 @@ module GeneticAlgorithm
     end
     
     def <=> other
-      @value > other.value
+      @value <=> other.value
     end
   end
   
@@ -35,7 +35,7 @@ module GeneticAlgorithm
     end
     
     def <=> other
-      @value < other.value
+      -(@value <=> other.value)
     end
   end
 end
