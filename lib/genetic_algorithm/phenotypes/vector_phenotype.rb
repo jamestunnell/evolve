@@ -18,7 +18,7 @@ module GeneticAlgorithm
     end
     
     def clone
-      obj = self.class.new(@bounds, @objective, entries)
+      self.class.new(@bounds, @objective, entries)
     end
   end
 end
