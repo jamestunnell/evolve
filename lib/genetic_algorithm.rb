@@ -9,3 +9,7 @@ require 'genetic_algorithm/phenotypes/vector_phenotype'
 
 require 'genetic_algorithm/selectors/tournament_selector'
 require 'genetic_algorithm/algorithms/simple_ga'
+
+require 'genetic_algorithm/experimentation/run'
+require 'genetic_algorithm/experimentation/run_set'
+require 'genetic_algorithm/experimentation/experiment'
