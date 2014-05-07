@@ -1,6 +1,6 @@
 require 'genetic_algorithm'
 include GeneticAlgorithm
-require 'pry'
+
 class Individual < VectorPhenotype
   include UniformMutation
   include OnepointCrossover
@@ -26,20 +26,24 @@ selector = TournamentSelector.new(TOURNAMENT_SIZE, SELECTION_PROBABILITY)
 algorithm = SimpleGA.new(selector,CROSSOVER_FRACTION,MUTATION_RATE)
 experiment = Experiment.new(algorithm)
 
-#begin
-#  pop_size = 40
-#  puts "Running experiment 1"
-#  puts "population size = #{pop_size}"
-#  run = experiment.run(pop_size,->(gen,best){ best.fitness >= 1536 })
-#  puts "done"
-#  
-#  puts "stopping generation: #{run.best_generation}"
-#  puts run.best_individual.inspect
-#  
-#  run.plot_fitness_history
-#end
-#
-#puts ""
+begin
+  pop_size = 40
+  puts "Running experiment 1"
+  puts "population size = #{pop_size}"
+  runs = Array.new(2) do |i|
+    experiment.run(pop_size,->(gen,best){ best.fitness >= 1536 })
+  end
+  puts "done"
+  
+  puts "run #1 stopping generation: #{runs[0].best_generation}"
+  puts "run #1 best individual: #{runs[0].best_individual.inspect}"
+  puts "run #2 stopping generation: #{runs[1].best_generation}"
+  puts "run #2 best individual: #{runs[1].best_individual.inspect}"
+  
+  RunSet.new(runs).plot_fitness_histories
+end
+
+puts ""
 
 begin
   pop_size = 40
@@ -62,43 +66,43 @@ begin
 end
 
 puts ""
-#
-#begin
-#  n_runs = 256
-#  
-#  avg_best_generations = {}
-#  
-#  puts "Running experiment 3"
-#  puts "n_runs = #{n_runs}"
-#  
-#  (10..200).step(10) do |pop_size|
-#    puts "population size = #{pop_size}"
-#      
-#    runs = Array.new(n_runs) do |i|
-#      if i % 20 == 0
-#        puts "run #{i}"
-#      end
-#      experiment.run(pop_size,->(gen,best){ best.fitness >= 1536 })
-#    end
-#    runset = RunSet.new(runs)
-#    best_generations = runset.best_fitnesses.transpose[0]
-#    avg_best_gen = best_generations.inject(0,:+) / best_generations.size.to_f
-#    avg_best_generations[pop_size] = avg_best_gen
-#  end
-#  puts "done"
-#  
-#  Gnuplot.open do |gp|
-#    Gnuplot::Plot.new( gp ) do |plot|
-#      plot.notitle
-#      plot.xlabel "Population Size"
-#      plot.ylabel "Average Stopping Generation"
-#      
-#      x,y = avg_best_generations.to_a.transpose
-#      
-#      plot.data << Gnuplot::DataSet.new( [x, y] ) do |ds|
-#        ds.with = "lines"
-#        ds.notitle
-#      end
-#    end
-#  end
-#end
+
+begin
+  n_runs = 256
+  
+  avg_best_generations = {}
+  
+  puts "Running experiment 3"
+  puts "n_runs = #{n_runs}"
+  
+  (10..200).step(10) do |pop_size|
+    puts "population size = #{pop_size}"
+      
+    runs = Array.new(n_runs) do |i|
+      if i % 20 == 0
+        puts "run #{i}"
+      end
+      experiment.run(pop_size,->(gen,best){ best.fitness >= 1536 })
+    end
+    runset = RunSet.new(runs)
+    best_generations = runset.best_fitnesses.transpose[0]
+    avg_best_gen = best_generations.inject(0,:+) / best_generations.size.to_f
+    avg_best_generations[pop_size] = avg_best_gen
+  end
+  puts "done"
+  
+  Gnuplot.open do |gp|
+    Gnuplot::Plot.new( gp ) do |plot|
+      plot.notitle
+      plot.xlabel "Population Size"
+      plot.ylabel "Average Stopping Generation"
+      
+      x,y = avg_best_generations.to_a.transpose
+      
+      plot.data << Gnuplot::DataSet.new( [x, y] ) do |ds|
+        ds.with = "lines"
+        ds.notitle
+      end
+    end
+  end
+end
