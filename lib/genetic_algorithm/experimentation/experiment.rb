@@ -11,7 +11,7 @@ module GeneticAlgorithm
       fitness_history = { 0 => best_so_far.fitness }
   
       n = 0
-      while !stopping_fn.call(n,best.fitness)
+      while !stopping_fn.call(n,best)
         population = @algorithm.evolve(population)
         n += 1
         
