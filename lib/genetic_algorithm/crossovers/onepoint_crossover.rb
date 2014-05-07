@@ -1,5 +1,5 @@
 module GeneticAlgorithm
-  #requires that the #size, #clone, and #[] methods are implemented
+  #requires that the #size, #clone, #[], and #[]= methods are implemented
   module OnepointCrossover
     def cross other
       raise ArgumentError, "size of other does not match size of self" if self.size != other.size

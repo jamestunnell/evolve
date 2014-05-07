@@ -1,5 +1,5 @@
 module GeneticAlgorithm
-  # Requires that the #size, #bounds, and #[] methods are implemented.
+  # Requires that the #size, #bounds, and #[]= methods are implemented.
   module UniformMutation
     # replaces the chosen value with a uniform random value selected between the upper and lower bounds
     def mutate
