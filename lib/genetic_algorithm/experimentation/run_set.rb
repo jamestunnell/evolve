@@ -52,7 +52,7 @@ module GeneticAlgorithm
           x,y = average_fitness_history.to_a.transpose
           
           plot.data << Gnuplot::DataSet.new( [x, y] ) do |ds|
-            ds.with = "steps"
+            ds.with = "lines"
             ds.notitle
           end
         end
