@@ -38,6 +38,10 @@ module GeneticAlgorithm
       ]
     end
     
+    def best_fitnesses
+      @runs.collect {|run| [run.best_generation, run.best_individual.fitness] }
+    end
+    
     def plot_average_fitness
       Gnuplot.open do |gp|
         Gnuplot::Plot.new( gp ) do |plot|

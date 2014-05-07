@@ -32,6 +32,10 @@ module GeneticAlgorithm
       @fitness_history.keys
     end
     
+    def best_generation
+      @fitness_history.select {|gen,fitness| fitness == @best_individual.fitness }.min[0]
+    end
+    
     def fitness_at generation
       unless @fitness_history.has_key?(generation)
         generation = generations.select {|n| n < generation }.max
