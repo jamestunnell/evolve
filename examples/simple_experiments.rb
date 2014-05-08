@@ -26,12 +26,15 @@ selector = TournamentSelector.new(TOURNAMENT_SIZE, SELECTION_PROBABILITY)
 algorithm = SimpleGA.new(selector,CROSSOVER_FRACTION,MUTATION_RATE)
 experiment = Experiment.new(algorithm)
 
+wait_for_optimal = ->(gen,best){ best.fitness >= 1536 }
+new_individual = ->(){ Individual.new }
+
 begin
   pop_size = 40
   puts "Running experiment 1"
   puts "population size = #{pop_size}"
   runs = Array.new(2) do |i|
-    experiment.run(pop_size,->(gen,best){ best.fitness >= 1536 })
+    experiment.run(pop_size, new_individual, wait_for_optimal)
   end
   puts "done"
   
@@ -57,7 +60,7 @@ begin
     if i % 20 == 0
       puts "run #{i}"
     end
-    experiment.run(pop_size,->(gen,best){ gen >= 1000 })
+    experiment.run(pop_size, new_individual, ->(gen,best){ gen >= 1000 })
   end
   puts "done"
   
@@ -82,7 +85,7 @@ begin
       if i % 20 == 0
         puts "run #{i}"
       end
-      experiment.run(pop_size,->(gen,best){ best.fitness >= 1536 })
+      experiment.run(pop_size, new_individual, wait_for_optimal)
     end
     runset = RunSet.new(runs)
     best_generations = runset.best_fitnesses.transpose[0]

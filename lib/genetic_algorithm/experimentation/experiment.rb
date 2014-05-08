@@ -4,8 +4,8 @@ module GeneticAlgorithm
       @algorithm = algorithm
     end
     
-    def run pop_size, stopping_fn
-      population = Array.new(pop_size) {|i| Individual.new }
+    def run pop_size, seed_fn, stopping_fn
+      population = Array.new(pop_size) {|i| seed_fn.call() }
       population.sort!
       best_so_far = population.last
       fitness_history = { 0 => best_so_far.fitness }
