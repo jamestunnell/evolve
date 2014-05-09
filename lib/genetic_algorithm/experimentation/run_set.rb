@@ -6,7 +6,7 @@ module GeneticAlgorithm
       @runs = runs
     end
     
-    def plot_fitness_histories
+    def plot_fitnesses
       Gnuplot.open do |gp|
         Gnuplot::Plot.new( gp ) do |plot|
           plot.title  "Fitness History (over #{@runs.size} runs)"
@@ -27,7 +27,7 @@ module GeneticAlgorithm
       end    
     end
     
-    def average_fitness_history
+    def average_fitness
       max_gen = @runs.map {|run| run.generations.max }.max
       Hash[
         (0..max_gen).map do |n|
@@ -49,7 +49,7 @@ module GeneticAlgorithm
           plot.xlabel "Generation"
           plot.ylabel "Average of Best Fitness (So Far)"
           
-          x,y = average_fitness_history.to_a.transpose
+          x,y = average_fitness.to_a.transpose
           
           plot.data << Gnuplot::DataSet.new( [x, y] ) do |ds|
             ds.with = "lines"

@@ -22,7 +22,7 @@ module GeneticAlgorithm
         end
       end
       
-      return Run.new(fitness_history,best_so_far)
+      return Run.new(n, fitness_history,best_so_far)
     end
   end
 end

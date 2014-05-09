@@ -43,7 +43,7 @@ begin
   puts "run #2 stopping generation: #{runs[1].best_generation}"
   puts "run #2 best individual: #{runs[1].best_individual.inspect}"
   
-  RunSet.new(runs).plot_fitness_histories
+  RunSet.new(runs).plot_fitnesses
 end
 
 puts ""

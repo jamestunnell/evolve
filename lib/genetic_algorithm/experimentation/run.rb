@@ -2,14 +2,15 @@ require 'gnuplot'
 
 module GeneticAlgorithm
   class Run
-    attr_reader :fitness_history, :best_individual
+    attr_reader :n_generations, :fitness, :best_individual
     
-    def initialize fitness_history, best_individual
-      @fitness_history = fitness_history
+    def initialize n_gen, fitness, best_individual
+      @n_generations = n_gen
+      @fitness = fitness
       @best_individual = best_individual
     end
     
-    def plot_fitness_history
+    def plot_fitness
       Gnuplot.open do |gp|
         Gnuplot::Plot.new( gp ) do |plot|
         
@@ -17,8 +18,8 @@ module GeneticAlgorithm
           plot.xlabel "Generation"
           plot.ylabel "Best Fitness (So Far)"
           
-          x = fitness_history.keys
-          y = x.map {|n| fitness_history[n] }
+          x = fitness.keys
+          y = x.map {|n| fitness[n] }
       
           plot.data << Gnuplot::DataSet.new( [x, y] ) do |ds|
             ds.with = "steps"
@@ -29,18 +30,18 @@ module GeneticAlgorithm
     end
     
     def generations
-      @fitness_history.keys
+      @fitness.keys
     end
     
     def best_generation
-      @fitness_history.select {|gen,fitness| fitness == @best_individual.fitness }.min[0]
+      @fitness.select {|gen,fitness| fitness == @best_individual.fitness }.min[0]
     end
     
     def fitness_at generation
-      unless @fitness_history.has_key?(generation)
+      unless @fitness.has_key?(generation)
         generation = generations.select {|n| n < generation }.max
       end
-      @fitness_history[generation]
+      @fitness[generation]
     end
   end
 end
