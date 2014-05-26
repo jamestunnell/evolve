@@ -6,7 +6,14 @@ class Individual < VectorPhenotype
   include OnepointCrossover
 
   BOUNDS = [-512..512,-512..512]
-  OBJECTIVE = ->(x){ -(x[0] - 2*x[1]) }
+  OBJECTIVE = lambda do |x|
+    y = x.eval
+    if y >= 0
+      return -y
+    else
+      return y
+    end
+  end
   
   def initialize entries=[]
     super(BOUNDS, OBJECTIVE, entries)
@@ -14,6 +21,11 @@ class Individual < VectorPhenotype
   
   def clone
     self.class.new(entries)
+  end
+  
+  def eval
+    x = entries
+    x[0] - 2*x[1]
   end
 end
 
@@ -26,7 +38,7 @@ selector = TournamentSelector.new(TOURNAMENT_SIZE, SELECTION_PROBABILITY)
 algorithm = SimpleGA.new(selector,CROSSOVER_FRACTION,MUTATION_RATE)
 experiment = Experiment.new(algorithm)
 
-wait_for_optimal = ->(gen,best){ best.fitness >= 1536 }
+wait_for_optimal = ->(gen,best){ best.fitness == 0 }
 new_individual = ->(){ Individual.new }
 
 begin

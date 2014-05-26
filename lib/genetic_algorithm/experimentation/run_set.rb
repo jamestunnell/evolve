@@ -27,6 +27,10 @@ module GeneticAlgorithm
       end    
     end
     
+    def average_generations
+      @runs.map {|run| run.n_generations }.inject(0,:+) / @runs.size.to_f
+    end
+    
     def average_fitness
       max_gen = @runs.map {|run| run.generations.max }.max
       Hash[
