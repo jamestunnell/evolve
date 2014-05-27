@@ -100,9 +100,7 @@ begin
       experiment.run(pop_size, new_individual, wait_for_optimal)
     end
     runset = RunSet.new(runs)
-    best_generations = runset.best_fitnesses.transpose[0]
-    avg_best_gen = best_generations.inject(0,:+) / best_generations.size.to_f
-    avg_best_generations[pop_size] = avg_best_gen
+    avg_best_generations[pop_size] = runset.average_generations
   end
   puts "done"
   
