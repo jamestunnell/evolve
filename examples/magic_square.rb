@@ -1,6 +1,6 @@
 require 'genetic_algorithm'
 include GeneticAlgorithm
-require 'pry'
+
 class Individual < VectorPhenotype
   include SwapMutation
   include OnepointCrossover
@@ -71,16 +71,14 @@ Gnuplot.open do |gp|
     puts "n_runs = #{n_runs}\n"
   
     avg_gens = {}  
-    stopping_fn = ->(gen,best){ best.fitness >= 0.99 }
+    stopping_fn = ->(gen,best){ best.fitness == 1 }
 
-    (4..16).step(2) do |square_size|
+    (4..24).step(2) do |square_size|
       seed_fn = ->(){ Individual.new(square_size) }
       puts "  square size = #{square_size}"
       
       runs = Array.new(n_runs) do |i|
         run = experiment.run(POP_SIZE, seed_fn, stopping_fn)
-        binding.pry
-        run
       end
       runset = RunSet.new(runs)
       avg_gen = runset.average_generations
