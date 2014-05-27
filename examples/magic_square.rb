@@ -3,7 +3,7 @@ include GeneticAlgorithm
 
 class Individual < VectorPhenotype
   include SwapMutation
-  include OnepointCrossover
+  include SwapCrossover
   
   OBJECTIVE = lambda do |x|
     n = x.n

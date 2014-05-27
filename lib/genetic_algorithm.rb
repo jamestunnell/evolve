@@ -5,6 +5,7 @@ require 'genetic_algorithm/mutations/uniform_mutation'
 require 'genetic_algorithm/mutations/swap_mutation'
 require 'genetic_algorithm/crossovers/onepoint_crossover'
 require 'genetic_algorithm/crossovers/twopoint_crossover'
+require 'genetic_algorithm/crossovers/swap_crossover'
 
 require 'genetic_algorithm/phenotypes/vector_phenotype'
 

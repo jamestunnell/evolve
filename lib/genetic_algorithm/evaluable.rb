@@ -1,5 +1,5 @@
 module GeneticAlgorithm
-  # requires implementation of #evaluate method
+  # requires @objective instance variable
   module Evaluable
     include Comparable
     
