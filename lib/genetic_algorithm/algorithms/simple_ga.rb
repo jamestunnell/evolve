@@ -21,8 +21,6 @@ module GeneticAlgorithm
         while children.size < n_children
           mom, dad = @selector.select(population,2)
           child1, child2 = mom.cross(dad)
-          child1.mutate if rand < @mutation_rate
-          child1.mutate if rand < @mutation_rate
           children.push(child1)
           children.push(child2)
         end
@@ -32,7 +30,14 @@ module GeneticAlgorithm
           children.pop
         end
         
+        # fill in the bottom n_children slots with children, keeping the
+        # upper slots unchanged (elitism)
         population[0...children.size] = children
+        
+        population.each do |individual|
+          individual.mutate if rand < @mutation_rate
+        end
+        
         population.sort!
         if block_given?
           yield population

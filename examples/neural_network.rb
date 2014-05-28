@@ -39,7 +39,7 @@ end
 
 class Array
   include PerturbMutation
-  include OnepointCrossover
+  include SwapCrossover
   
   def bounds
     unless @bounds
@@ -62,19 +62,37 @@ class CharRecognizer < MLP
     "E" => 4
   }
   
-  CHARBITS = {
-    "A" => [0,1,1,1,0,1,0,0,0,1,1,1,1,1,1,1,0,0,0,1,1,0,0,0,1],
-    "B" => [1,1,1,1,0,1,0,0,0,1,1,1,1,1,0,1,0,0,0,1,1,1,1,1,0],
-    "C" => [0,1,1,1,0,1,0,0,0,1,1,0,0,0,0,1,0,0,0,1,0,1,1,1,0],
-    "D" => [1,1,1,1,0,1,0,0,0,1,1,0,0,0,1,1,0,0,0,1,1,1,1,1,0],
-    "E" => [1,1,1,1,1,1,0,0,0,0,1,1,1,0,0,1,0,0,0,0,1,1,1,1,1]
+  CHARBITSETS = {
+    "A" => [
+      [0,1,1,1,0,1,0,0,0,1,1,1,1,1,1,1,0,0,0,1,1,0,0,0,1],
+      [1,1,1,1,1,1,0,0,0,1,1,1,1,1,1,1,0,0,0,1,1,0,0,0,1],
+      [0,0,1,0,0,0,1,0,1,1,1,1,1,1,1,1,0,0,0,1,1,0,0,0,1]
+    ],
+    "B" => [
+      [1,1,1,1,0,1,0,0,0,1,1,1,1,1,0,1,0,0,0,1,1,1,1,1,0],
+      [0,1,1,1,0,1,0,0,0,1,1,1,1,1,0,1,0,0,0,1,0,1,1,1,0],
+      [0,1,1,1,0,1,0,0,0,1,0,1,1,1,0,1,0,0,0,1,1,1,1,1,0],
+    ],
+    "C" => [
+      [0,1,1,1,0,1,0,0,0,1,1,0,0,0,0,1,0,0,0,1,0,1,1,1,0],
+      [0,0,1,1,0,0,1,0,0,1,1,0,0,0,0,0,1,0,0,1,0,0,1,1,0],
+      [0,0,1,1,1,0,1,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,1,1],
+    ],
+    "D" => [
+      [1,1,1,1,0,1,0,0,0,1,1,0,0,0,1,1,0,0,0,1,1,1,1,1,0],
+      [1,1,1,0,0,1,0,0,1,0,1,0,0,0,1,1,0,0,0,1,1,1,1,1,0],
+      [1,1,1,1,0,1,0,0,0,1,1,0,0,0,1,1,0,0,1,0,1,1,1,0,0],  
+    ],
+    "E" => [
+      [1,1,1,1,1,1,0,0,0,0,1,1,1,0,0,1,0,0,0,0,1,1,1,1,1],
+      [1,1,1,1,0,1,0,0,0,0,1,1,1,0,0,1,0,0,0,0,1,1,1,1,0],
+      [1,1,1,1,1,1,0,0,0,0,1,1,0,0,0,1,0,0,0,0,1,1,1,1,1],
+    ]
   }
   
   N_INPUTS = 25
   N_OUTPUTS = Math.log2(CHARCODES.size).ceil
   
-  BOUND = 
-    
   def initialize n_hidden
     super(N_INPUTS,n_hidden,N_OUTPUTS)
   end
@@ -84,10 +102,15 @@ class CharRecognizer < MLP
   end
   
   def evaluate
-    recognized = CHARBITS.select do |char,bits|
-      recognize(bits) == CHARCODES[char]
+    recognized = 0
+    CHARBITSETS.each do |char,bitsets|
+      bitsets.each do |bits|
+        if recognize(bits) == CHARCODES[char]
+          recognized += 1
+        end
+      end
     end
-    recognized.size
+    recognized
   end
   
   def recognize in_bits
@@ -96,8 +119,8 @@ class CharRecognizer < MLP
   end
   
   def mutate
-    in_weights.each { mutate }
-    hidden_weights.each { mutate }
+    in_weights.each { |x| x.mutate }
+    hidden_weights.each { |x| x.mutate }
   end
   
   def cross other
@@ -111,14 +134,16 @@ class CharRecognizer < MLP
     hidden_weights.each_index do |i|
       a.hidden_weights[i], b.hidden_weights[i] = hidden_weights[i].cross(other.hidden_weights[i])
     end
+    
+    return a,b
   end
 end
 
-TOURNAMENT_SIZE = 10
+TOURNAMENT_SIZE = 2
 SELECTION_PROBABILITY = 0.5
 CROSSOVER_FRACTION = 0.8
 MUTATION_RATE = 0.25
-POP_SIZE = 50
+POP_SIZE = 100
 
 selector = TournamentSelector.new(TOURNAMENT_SIZE, SELECTION_PROBABILITY)
 algorithm = SimpleGA.new(selector,CROSSOVER_FRACTION,MUTATION_RATE)
@@ -126,8 +151,6 @@ experiment = Experiment.new(algorithm)
 
 N_HIDDEN = 10
 seed_fn = ->(){ CharRecognizer.new(N_HIDDEN) }
-stop_fn = ->(gen,best){ best.fitness > 2 }
+stop_fn = ->(gen,best){ best.fitness > 6 }
 run = experiment.run(POP_SIZE,seed_fn,stop_fn,print_progress:true)
-run.plot_fitness
-#population = Array.new(POP_SIZE) {|i| seed_fn.call() }
-binding.pry
+puts "took #{run.best_generation} generations"
