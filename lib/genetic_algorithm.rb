@@ -2,6 +2,7 @@ require 'genetic_algorithm/version'
 
 require 'genetic_algorithm/evaluable'
 require 'genetic_algorithm/mutations/uniform_mutation'
+require 'genetic_algorithm/mutations/perturb_mutation'
 require 'genetic_algorithm/mutations/swap_mutation'
 require 'genetic_algorithm/crossovers/onepoint_crossover'
 require 'genetic_algorithm/crossovers/twopoint_crossover'

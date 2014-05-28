@@ -13,14 +13,14 @@ def signum x
   x > 0 ? 1 : 0
 end
 
-class MLP < Array
-  attr_reader :n_in, :n_hidden, :n_out
+class MLP
+  attr_reader :in_weights, :hidden_weights
   def initialize n_in, n_hidden, n_out
-    values = Array.new((n_in+1) * n_hidden + (n_hidden+1) * n_out){rand-0.5}
+    @in_weights = Array.new(n_in+1){ Array.new(n_hidden){ rand-0.5 }}
+    @hidden_weights = Array.new(n_hidden+1){ Array.new(n_out){ rand-0.5 }}
     @n_in = n_in
     @n_hidden = n_hidden
     @n_out = n_out
-    super(values)
   end
     
   def forward inputs
@@ -28,22 +28,30 @@ class MLP < Array
       raise ArgumentError, "Input size is #{inputs.size}, but should be #{@n_in}"
     end
     
-    n_in_weights = (@n_in + 1) * @n_hidden
-    in_weights = slice(0...n_in_weights).each_slice(@n_hidden).to_a
-    hidden_weights = slice(n_in_weights..-1).each_slice(@n_out).to_a
-    
     inputs.unshift(-1)
-    hidden_outputs = (Matrix.row_vector(inputs) * Matrix.rows(in_weights)).map {|x| signum(x) }
+    hidden_outputs = (Matrix.row_vector(inputs) * Matrix.rows(@in_weights)).map {|x| signum(x) }
     hidden_outputs = hidden_outputs.to_a.flatten
     hidden_outputs.unshift(-1)
-    outputs = (Matrix.row_vector(hidden_outputs) * Matrix.rows(hidden_weights)).map {|x| signum(x) }
+    outputs = (Matrix.row_vector(hidden_outputs) * Matrix.rows(@hidden_weights)).map {|x| signum(x) }
     outputs.to_a.flatten
   end  
 end
+
+class Array
+  include PerturbMutation
+  include OnepointCrossover
   
+  def bounds
+    unless @bounds
+      @bounds = [-10.0..10.0] * size
+    end
+    @bounds
+  end
+end
+
 class CharRecognizer < MLP
   include Evaluable
-  include UniformMutation
+  include PerturbMutation
   include SwapCrossover
   
   CHARCODES = {
@@ -65,10 +73,10 @@ class CharRecognizer < MLP
   N_INPUTS = 25
   N_OUTPUTS = Math.log2(CHARCODES.size).ceil
   
-  attr_reader :bounds
+  BOUND = 
+    
   def initialize n_hidden
     super(N_INPUTS,n_hidden,N_OUTPUTS)
-    @bounds = [(-10.0)..(10.0)] * self.size
   end
   
   def clone
@@ -86,6 +94,24 @@ class CharRecognizer < MLP
     out_bits = self.forward(in_bits.clone)
     out_bits.inject(0){|r,i| r << 1 | i} # convert array of bits to integer
   end
+  
+  def mutate
+    in_weights.each { mutate }
+    hidden_weights.each { mutate }
+  end
+  
+  def cross other
+    a = self.clone
+    b = other.clone
+    
+    in_weights.each_index do |i|
+      a.in_weights[i], b.in_weights[i] = in_weights[i].cross(other.in_weights[i])
+    end
+    
+    hidden_weights.each_index do |i|
+      a.hidden_weights[i], b.hidden_weights[i] = hidden_weights[i].cross(other.hidden_weights[i])
+    end
+  end
 end
 
 TOURNAMENT_SIZE = 10
@@ -98,10 +124,10 @@ selector = TournamentSelector.new(TOURNAMENT_SIZE, SELECTION_PROBABILITY)
 algorithm = SimpleGA.new(selector,CROSSOVER_FRACTION,MUTATION_RATE)
 experiment = Experiment.new(algorithm)
 
-N_HIDDEN = 52
+N_HIDDEN = 10
 seed_fn = ->(){ CharRecognizer.new(N_HIDDEN) }
 stop_fn = ->(gen,best){ best.fitness > 2 }
-run = experiment.run(POP_SIZE,seed_fn,stop_fn)
+run = experiment.run(POP_SIZE,seed_fn,stop_fn,print_progress:true)
 run.plot_fitness
 #population = Array.new(POP_SIZE) {|i| seed_fn.call() }
 binding.pry
