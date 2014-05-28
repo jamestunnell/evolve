@@ -35,7 +35,7 @@ module GeneticAlgorithm
         population[0...children.size] = children
         
         population.each do |individual|
-          individual.mutate if rand < @mutation_rate
+          mutate individual
         end
         
         population.sort!
@@ -46,6 +46,14 @@ module GeneticAlgorithm
       
       unless block_given?
         return population
+      end
+    end
+  end
+  
+  def mutate individual
+    individual.size.times do |i|
+      if rand < @mutation_rate
+        individual.mutate i
       end
     end
   end

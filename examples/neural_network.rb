@@ -1,6 +1,5 @@
 require 'genetic_algorithm'
 require 'matrix'
-require 'narray'
 
 require 'pry'
 
@@ -39,7 +38,7 @@ end
 
 class Array
   include PerturbMutation
-  include SwapCrossover
+  include OnepointCrossover
   
   def bounds
     unless @bounds
@@ -51,8 +50,6 @@ end
 
 class CharRecognizer < MLP
   include Evaluable
-  include PerturbMutation
-  include SwapCrossover
   
   CHARCODES = {
     "A" => 0,
@@ -118,9 +115,9 @@ class CharRecognizer < MLP
     out_bits.inject(0){|r,i| r << 1 | i} # convert array of bits to integer
   end
   
-  def mutate
-    in_weights.each { |x| x.mutate }
-    hidden_weights.each { |x| x.mutate }
+  def mutate pos
+    in_weights.each { |x| x.mutate pos }
+    hidden_weights.each { |x| x.mutate pos }
   end
   
   def cross other
@@ -141,8 +138,8 @@ end
 
 TOURNAMENT_SIZE = 10
 SELECTION_PROBABILITY = 0.7
-CROSSOVER_FRACTION = 0.9
-MUTATION_RATE = 0.01
+CROSSOVER_FRACTION = 1
+MUTATION_RATE = 0.03
 POP_SIZE = 100
 
 selector = TournamentSelector.new(TOURNAMENT_SIZE, SELECTION_PROBABILITY)
@@ -153,5 +150,5 @@ N_HIDDEN = 10
 seed_fn = ->(){ CharRecognizer.new(N_HIDDEN) }
 stop_fn = ->(gen,best){ gen > 50 || best.fitness > 6 }
 run = experiment.run(POP_SIZE,seed_fn,stop_fn,print_progress:true)
-puts "took #{run.best_generation} generations"
+puts "took #{run.generations.last} generations"
 binding.pry
