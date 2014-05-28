@@ -29,6 +29,7 @@ module GeneticAlgorithm
           puts "#{n}\t#{best.fitness}\t#{best_so_far.fitness}"
         end
       end
+      fitness_history[n] = best_so_far.fitness
       
       return Run.new(n, fitness_history,best_so_far)
     end

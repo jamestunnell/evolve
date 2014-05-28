@@ -139,10 +139,10 @@ class CharRecognizer < MLP
   end
 end
 
-TOURNAMENT_SIZE = 2
-SELECTION_PROBABILITY = 0.5
-CROSSOVER_FRACTION = 0.8
-MUTATION_RATE = 0.25
+TOURNAMENT_SIZE = 10
+SELECTION_PROBABILITY = 0.7
+CROSSOVER_FRACTION = 0.9
+MUTATION_RATE = 0.01
 POP_SIZE = 100
 
 selector = TournamentSelector.new(TOURNAMENT_SIZE, SELECTION_PROBABILITY)
@@ -151,6 +151,7 @@ experiment = Experiment.new(algorithm)
 
 N_HIDDEN = 10
 seed_fn = ->(){ CharRecognizer.new(N_HIDDEN) }
-stop_fn = ->(gen,best){ best.fitness > 6 }
+stop_fn = ->(gen,best){ gen > 50 || best.fitness > 6 }
 run = experiment.run(POP_SIZE,seed_fn,stop_fn,print_progress:true)
 puts "took #{run.best_generation} generations"
+binding.pry
