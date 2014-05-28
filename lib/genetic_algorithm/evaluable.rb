@@ -1,11 +1,7 @@
 module GeneticAlgorithm
-  # requires @objective instance variable
+  # requires that the #evaluate method be implemented.
   module Evaluable
     include Comparable
-    
-    def evaluate
-      @objective.call(self)
-    end
     
     def fitness
       if @fitness.nil?

@@ -1,17 +1,35 @@
 require 'genetic_algorithm'
 include GeneticAlgorithm
 
-class Individual < VectorPhenotype
+class MagicSquare < Array
+  include Evaluable
   include SwapMutation
   include SwapCrossover
   
-  OBJECTIVE = lambda do |x|
-    n = x.n
-    m = x.m
+  attr_reader :n, :m
+  def initialize n, values=[]
+    n2 = n*n
+    @n = n
+    @m = n*(n**2 + 1)/2 # magic constant (or magic sum)    
+    
+    unless values.any?
+      values = (1..n2).to_a.shuffle
+    end
+    
+    super(values)
+  end
+  
+  def clone
+    MagicSquare.new(@n, entries)
+  end
+  
+  def evaluate
+    n = @n
+    m = @m
     
     rows = Array.new(n) do |i|
       row_start = n*i
-      x[row_start...(row_start + n)]
+      entries[row_start...(row_start + n)]
     end
     matrix = Matrix.rows(rows)
     
@@ -26,28 +44,6 @@ class Individual < VectorPhenotype
     max_deviation_total = sums.size * (m-n)
     deviation_total = (total-ideal_total).abs
     (max_deviation_total - deviation_total)/max_deviation_total.to_f
-  end
-  
-  attr_reader :n, :m
-  def initialize n, values=[]
-    n2 = n*n
-    @n = n
-    @m = n*(n**2 + 1)/2 # magic constant (or magic sum)    
-    bounds = [1..n2]*n2
-    
-    if values.any?
-      if values.size != n2
-        raise ArgumentError
-      end
-    else
-      values = (1..n2).to_a.shuffle
-    end
-    
-    super(bounds, OBJECTIVE, values)
-  end
-  
-  def clone
-    Individual.new(@n, entries)
   end
 end
 
@@ -74,7 +70,7 @@ Gnuplot.open do |gp|
     stopping_fn = ->(gen,best){ best.fitness == 1 }
 
     (4..24).step(2) do |square_size|
-      seed_fn = ->(){ Individual.new(square_size) }
+      seed_fn = ->(){ MagicSquare.new(square_size) }
       puts "  square size = #{square_size}"
       
       runs = Array.new(n_runs) do |i|

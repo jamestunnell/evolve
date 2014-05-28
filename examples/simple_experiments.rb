@@ -1,31 +1,34 @@
 require 'genetic_algorithm'
 include GeneticAlgorithm
 
-class Individual < VectorPhenotype
+class Individual < Array
+  include Evaluable
   include UniformMutation
   include OnepointCrossover
 
   BOUNDS = [-512..512,-512..512]
-  OBJECTIVE = lambda do |x|
-    y = x.eval
+  
+  attr_reader :bounds
+  def initialize values=[]
+    @bounds = BOUNDS
+    unless values.any?
+      values = @bounds.map {|bound| rand(bound) }
+    end
+    super(values)
+  end
+  
+  def clone
+    Individual.new(entries)
+  end
+  
+  def evaluate
+    x = entries
+    y = x[0] - 2*x[1]
     if y >= 0
       return -y
     else
       return y
     end
-  end
-  
-  def initialize entries=[]
-    super(BOUNDS, OBJECTIVE, entries)
-  end
-  
-  def clone
-    self.class.new(entries)
-  end
-  
-  def eval
-    x = entries
-    x[0] - 2*x[1]
   end
 end
 
