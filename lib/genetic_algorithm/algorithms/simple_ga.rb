@@ -53,7 +53,7 @@ module GeneticAlgorithm
   def mutate individual
     individual.size.times do |i|
       if rand < @mutation_rate
-        individual.mutate i
+        individual.mutate! i
       end
     end
   end

@@ -2,19 +2,30 @@ module GeneticAlgorithm
   #requires that the #size, #clone, and #[] methods are implemented
   module TwopointCrossover
     def cross other
-      raise ArgumentError, "size of other does not match size of self" if self.size != other.size
-      raise RuntimeError, "genotype size must be greater than 2" if self.size <= 2
+      n = self.size
+      raise ArgumentError, "size of other does not match size of self" if n != other.size
+      raise RuntimeError, "size must be greater than 2" if n <= 2
+      
+      g = gamma
+      raise ArgumentError, "" unless g.between?(0,1)
+      m = rand(0..gamma) * n
       
       a = self.clone
       b = other.clone
-      point_1 = rand(1...(self.size-1))
-      point_2 = rand(point_1...self.size)
+      l_pos = rand(0...(n-m))
+      r_pos = l_pos + m
       
       # swap
-      a[point_1...point_2] = other[point_1...point_2]
-      b[point_1...point_2] = self[point_1...point_2]
+      a[l_pos...r_pos] = other[l_pos...r_pos]
+      b[l_pos...r_pos] = self[l_pos...r_pos]
       
       return a,b
+    end
+    
+    def method_missing(mname)
+      if mname == :gamma
+        return 1
+      end
     end
   end
 end

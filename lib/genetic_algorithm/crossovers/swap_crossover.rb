@@ -2,14 +2,18 @@ module GeneticAlgorithm
   #requires that the #size, #clone, #index, #[], and #[]= methods are implemented
   module SwapCrossover
     def cross other
-      raise ArgumentError, "size of other does not match size of self" if self.size != other.size
+      n = self.size
+      raise ArgumentError, "size of other does not match size of self" if n != other.size
       
       a = self.clone
       b = other.clone
       
-      n_swaps = rand(1...self.size)
+      g = gamma
+      raise ArgumentError, "" unless g.between?(0,1)
+      n_swaps = (rand(0.0..g) * n).to_i
+      
       n_swaps.times do |i|
-        pos = rand(1...self.size)
+        pos = rand(1...n)
         a1 = a[pos]
         b1 = b[pos]
         a2i = a.index(b1)
@@ -22,6 +26,12 @@ module GeneticAlgorithm
       end
       
       return a,b
+    end
+    
+    def method_missing(mname)
+      if mname == :gamma
+        return 1
+      end
     end
   end
 end

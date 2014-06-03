@@ -5,15 +5,25 @@ module GeneticAlgorithm
       n = self.size
       raise ArgumentError, "size of other does not match size of self" if n != other.size
       
+      g = gamma
+      raise ArgumentError, "" unless g.between?(0,1)
+      m = rand(0..gamma) * n
+      
       a = self.clone
       b = other.clone
-      point = rand(1...n)
+      point = rand(0...m)
       
       # swap
       a[0...point] = other[0...point]
       b[0...point] = self[0...point]
       
       return a,b
+    end
+    
+    def method_missing(mname)
+      if mname == :gamma
+        return 1
+      end
     end
   end
 end

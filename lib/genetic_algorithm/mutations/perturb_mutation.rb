@@ -4,7 +4,7 @@ module GeneticAlgorithm
   module PerturbMutation
     # replaces the chosen value by multiplying a uniform random value, between
     # -beta and +beta, by (upper bound - lower bound).
-    def mutate pos
+    def mutate! pos
       perc = rand(-self.beta..self.beta)
       bound = self.bounds[pos]
       min,max = bound.first, bound.last
