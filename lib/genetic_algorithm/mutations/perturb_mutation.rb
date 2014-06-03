@@ -1,9 +1,11 @@
 module GeneticAlgorithm
-  # Requires that the #size, #bounds, and #[]= methods are implemented.
+  # Requires that the #size, #bounds, and #[]= methods are implemented. If desired,
+  # #beta can be implemented to override the default value.
   module PerturbMutation
-    # replaces the chosen value with a uniform random value selected between the upper and lower bounds
+    # replaces the chosen value by multiplying a uniform random value, between
+    # -beta and +beta, by (upper bound - lower bound).
     def mutate pos
-      perc = rand(-0.1..0.1)
+      perc = rand(-self.beta..self.beta)
       bound = self.bounds[pos]
       min,max = bound.first, bound.last
       newval = self[pos] + (max-min) * perc
@@ -13,6 +15,12 @@ module GeneticAlgorithm
         self[pos] = max
       else
         self[pos] = newval
+      end
+    end
+    
+    def method_missing(mname)
+      if mname == :beta
+        return 0.1
       end
     end
   end
