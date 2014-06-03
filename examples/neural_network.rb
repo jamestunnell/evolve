@@ -69,7 +69,11 @@ end
 class CharRecognizer < MLP
   include Evaluable
   include PerturbMutation
-  include TwopointCrossover
+  include OnepointCrossover
+  
+  def beta
+    0.2
+  end
   
   CHARBITSETS = {
     "A" => [
@@ -146,18 +150,20 @@ class CharRecognizer < MLP
   end  
 end
 
-TOURNAMENT_SIZE = 4
+TOURNAMENT_SIZE = 3
 SELECTION_PROBABILITY = 0.6
 CROSSOVER_FRACTION = 0.9
-MUTATION_RATE = 0.01
+MUTATION_RATE = 0.1
 POP_SIZE = 24
+NGEN = 200
 
 selector = TournamentSelector.new(TOURNAMENT_SIZE, SELECTION_PROBABILITY)
 algorithm = SimpleGA.new(selector,CROSSOVER_FRACTION,MUTATION_RATE)
 experiment = Experiment.new(algorithm)
 
-N_HIDDEN = 10
+N_HIDDEN = 15
 seed_fn = ->(){ CharRecognizer.new(N_HIDDEN) }
-stop_fn = ->(gen,best){ gen > 500 || best.fitness > 6 }
+stop_fn = ->(gen,best){ gen > NGEN || best.fitness > 6 }
+#binding.pry
 run = experiment.run(POP_SIZE,seed_fn,stop_fn,print_progress:true)
 puts "took #{run.generations.last} generations"

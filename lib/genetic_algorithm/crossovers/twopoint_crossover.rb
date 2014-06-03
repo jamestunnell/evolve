@@ -11,9 +11,8 @@ module GeneticAlgorithm
       point_2 = rand(point_1...self.size)
       
       # swap
-      a[0...point_1], b[0...point_1] = b[0...point_1], a[0...point_1]
-      a[point_1...point_2], b[point_1...point_2] = b[point_1...point_2], a[point_1...point_2]
-      a[point_2...a.size], b[point_2...b.size] = b[point_2...b.size], a[point_2...a.size]
+      a[point_1...point_2] = other[point_1...point_2]
+      b[point_1...point_2] = self[point_1...point_2]
       
       return a,b
     end
