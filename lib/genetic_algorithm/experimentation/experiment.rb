@@ -18,7 +18,7 @@ module GeneticAlgorithm
     def run pop_size, seed_fn, stopping_fn
       population = Array.new(pop_size) {|i| seed_fn.call() }
       population.sort!
-      best_so_far = population.last
+      best_so_far = population.last.clone
       avg_fitnesses = { 0 => Experiment.avg_fitness(population) }
       best_fitnesses = { 0 => best_so_far.fitness }
   
@@ -37,7 +37,7 @@ module GeneticAlgorithm
         
         best = population.last
         if best > best_so_far
-          best_so_far = best
+          best_so_far = best.clone
           best_fitnesses[n] = best.fitness
         end
         
@@ -46,6 +46,10 @@ module GeneticAlgorithm
           puts "#{n}\t#{avg_fitness}\t#{best.fitness}\t#{best_so_far.fitness}"
         when MINIMAL
           print "."
+        end
+        
+        if block_given?
+          yield n, population
         end
       end
       
