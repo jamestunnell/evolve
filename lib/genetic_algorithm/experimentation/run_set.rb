@@ -13,41 +13,41 @@ module GeneticAlgorithm
     def plot_best
       plotter = Plotter.fitness_plotter("Best")
       plotter.title += " #{@runs.size} runs"
-      plotter.plot_datasets @runs.map {|run| run.best_fitness_dataset }
+      plotter.plot_datasets @runs.map {|run| run.best_dataset }
     end
 
     def plot_average
       plotter = Plotter.fitness_plotter("Average")
       plotter.title += " #{@runs.size} runs"
-      plotter.plot_datasets @runs.map {|run| run.average_fitness_dataset }
+      plotter.plot_datasets @runs.map {|run| run.average_dataset }
     end
     
     def plot_average_best
       plotter = Plotter.fitness_plotter("(Average) Best")
       plotter.title += " #{@runs.size} runs"
-      plotter.plot_dataset average_best_fitness_dataset
+      plotter.plot_dataset average_best_dataset
     end
     
     def plot_average_average
       plotter = Plotter.fitness_plotter("(Average) Average")
       plotter.title += " #{@runs.size} runs"
-      plotter.plot_dataset average_average_fitness_dataset
+      plotter.plot_dataset average_average_dataset
     end
 
-    def average_best_fitnesses
-      RunSet.average_fitnesses @runs.map {|run| run.best_fitnesses }
+    def average_best
+      RunSet.average_fitnesses @runs.map {|run| run.best }
     end
     
-    def average_best_fitness_dataset
-      Run.fitness_dataset average_best_fitnesses, "lines", "(Average) Best"
+    def average_best_dataset
+      Run.fitness_dataset average_best, "lines", "(Average) Best"
     end
     
-    def average_average_fitnesses
-      RunSet.average_fitnesses @runs.map {|run| run.best_fitnesses }
+    def average_average
+      RunSet.average_fitnesses @runs.map {|run| run.average }
     end
     
-    def average_average_fitness_dataset
-      Run.fitness_dataset average_average_fitnesses, "lines", "(Average) Best"
+    def average_average_dataset
+      Run.fitness_dataset average_average, "lines", "(Average) Average"
     end
     
     def self.average_fitnesses fitness_histories

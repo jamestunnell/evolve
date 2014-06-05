@@ -2,24 +2,24 @@ require 'gnuplot'
 
 module GeneticAlgorithm
   class Run
-    attr_reader :best_individual, :best_fitnesses, :average_fitnesses
+    attr_reader :best_individual, :best, :average
     
-    def initialize best_individual, best_fitnesses, avg_fitnesses
+    def initialize best_individual, best, avg
       @best_individual = best_individual
-      @best_fitnesses = best_fitnesses
-      @average_fitnesses = avg_fitnesses
+      @best = best
+      @average = avg
     end
     
     def last_generation
-      [@best_fitnesses.keys.max,@average_fitnesses.keys.max].max
+      [@best.keys.max,@average.keys.max].max
     end
     
-    def best_fitness_dataset 
-      Run.fitness_dataset average_fitnesses, "steps", "Best"
+    def best_dataset 
+      Run.fitness_dataset average, "steps", "Best"
     end
     
-    def average_fitness_dataset
-      Run.fitness_dataset average_fitnesses, "lines", "Average"
+    def average_dataset
+      Run.fitness_dataset average, "lines", "Average"
     end
         
     def plot_best
@@ -31,16 +31,16 @@ module GeneticAlgorithm
     end
     
     def plot_all
-      datasets = [ best_fitness_dataset, average_fitness_dataset ]
+      datasets = [ best_dataset, average_dataset ]
       Plotter.fitness_plotter("Best and Average").plot_datasets datasets
     end
     
-    def average_fitness_at generation
-      Run.fitness_at @average_fitnesses, generation
+    def average_at generation
+      Run.fitness_at @average, generation
     end
     
-    def best_fitness_at generation
-      Run.fitness_at @best_fitnesses, generation
+    def best_at generation
+      Run.fitness_at @best, generation
     end
     
     def self.fitness_dataset fitnesses, linestyle, linetitle
