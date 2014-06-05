@@ -15,7 +15,7 @@ module GeneticAlgorithm
     end
     
     def best_dataset 
-      Run.fitness_dataset average, "steps", "Best"
+      Run.fitness_dataset best, "steps", "Best"
     end
     
     def average_dataset
