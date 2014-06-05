@@ -5,8 +5,7 @@ module GeneticAlgorithm
     end
     
     def self.avg_fitness population
-      fitnesses = population.map {|x| x.fitness }
-      fitnesses.inject(0.0,:+) / fitnesses.size.to_f
+      population.map {|x| x.fitness }.average
     end
     
     def run pop_size, seed_fn, stopping_fn, print_progress: false
