@@ -10,6 +10,10 @@ module GeneticAlgorithm
       @fitness
     end
     
+    def reevaluate
+      @fitness = self.evaluate
+    end
+    
     def <=> other
       self.fitness <=> other.fitness
     end

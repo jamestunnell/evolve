@@ -21,6 +21,8 @@ module GeneticAlgorithm
         while children.size < n_children
           mom, dad = @selector.select(population,2)
           child1, child2 = mom.cross(dad)
+          child1.reevaluate
+          child2.reevaluate
           children.push(child1)
           children.push(child2)
         end
@@ -39,6 +41,7 @@ module GeneticAlgorithm
         end
         
         population.sort!
+        
         if block_given?
           yield population
         end
@@ -51,10 +54,15 @@ module GeneticAlgorithm
   end
   
   def mutate individual
+    mutated = false
     individual.size.times do |i|
       if rand < @mutation_rate
+        mutated = true
         individual.mutate! i
       end
+    end
+    if mutated
+      individual.reevaluate
     end
   end
 end
