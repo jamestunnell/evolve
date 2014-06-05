@@ -1,5 +1,6 @@
 require 'genetic_algorithm'
 include GeneticAlgorithm
+require 'pry'
 
 class Individual < Array
   include Evaluable
@@ -22,20 +23,18 @@ class Individual < Array
   end
   
   def evaluate
-    x = entries
-    y = x[0] - 2*x[1]
-    if y >= 0
-      return -y
-    else
-      return y
-    end
+    (entries[0] - 2*entries[1]).abs
+  end
+  
+  def <=>(other)
+    -super(other)
   end
 end
 
 TOURNAMENT_SIZE = 6
 SELECTION_PROBABILITY = 0.6
-CROSSOVER_FRACTION = 0.8
-MUTATION_RATE = 0.25
+CROSSOVER_FRACTION = 0.9
+MUTATION_RATE = 0.1
 
 selector = TournamentSelector.new(TOURNAMENT_SIZE, SELECTION_PROBABILITY)
 algorithm = SimpleGA.new(selector,CROSSOVER_FRACTION,MUTATION_RATE)
@@ -53,19 +52,20 @@ begin
   end
   puts "done"
   
-  puts "run #1 stopping generation: #{runs[0].best_generation}"
+  puts "run #1 stopping generation: #{runs[0].last_generation}"
   puts "run #1 best individual: #{runs[0].best_individual.inspect}"
-  puts "run #2 stopping generation: #{runs[1].best_generation}"
+  puts "run #2 stopping generation: #{runs[1].last_generation}"
   puts "run #2 best individual: #{runs[1].best_individual.inspect}"
   
   RunSet.new(runs).plot_best
+  RunSet.new(runs).plot_average
 end
 
 puts ""
 
 begin
   pop_size = 40
-  n_runs = 256
+  n_runs = 100
   
   puts "Running experiment 2"
   puts "population size = #{pop_size}"
@@ -78,15 +78,13 @@ begin
     experiment.run(pop_size, new_individual, ->(gen,best){ gen >= 1000 })
   end
   puts "done"
-  
-  runset = RunSet.new(runs)
-  runset.plot_average_best
+  RunSet.new(runs).plot_average_best
 end
 
 puts ""
 
 begin
-  n_runs = 256
+  n_runs = 100
   
   avg_best_generations = {}
   
