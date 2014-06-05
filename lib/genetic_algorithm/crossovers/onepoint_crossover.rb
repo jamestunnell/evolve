@@ -7,11 +7,11 @@ module GeneticAlgorithm
       
       g = gamma
       raise ArgumentError, "" unless g.between?(0,1)
-      m = rand(0..gamma) * n
+      m = (rand(0.0..gamma) * n).to_i
       
       a = self.clone
       b = other.clone
-      point = rand(0...m)
+      point = rand(0...m) || 0
       
       # swap
       a[0...point] = other[0...point]
@@ -22,7 +22,7 @@ module GeneticAlgorithm
     
     def method_missing(mname)
       if mname == :gamma
-        return 1
+        return 1.0
       end
     end
   end

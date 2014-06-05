@@ -26,7 +26,7 @@ module GeneticAlgorithm
         n += 1
         
         avg_fitness = Experiment.avg_fitness(population)
-        avg_fitnesses[n] = avg_fitness 
+        avg_fitnesses[n] = avg_fitness
         
         best = population.last
         if best > best_so_far

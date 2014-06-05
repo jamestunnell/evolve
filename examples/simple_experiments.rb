@@ -58,7 +58,7 @@ begin
   puts "run #2 stopping generation: #{runs[1].best_generation}"
   puts "run #2 best individual: #{runs[1].best_individual.inspect}"
   
-  RunSet.new(runs).plot_fitnesses
+  RunSet.new(runs).plot_best
 end
 
 puts ""
@@ -80,7 +80,7 @@ begin
   puts "done"
   
   runset = RunSet.new(runs)
-  runset.plot_average_fitness
+  runset.plot_average_best
 end
 
 puts ""
@@ -107,18 +107,11 @@ begin
   end
   puts "done"
   
-  Gnuplot.open do |gp|
-    Gnuplot::Plot.new( gp ) do |plot|
-      plot.notitle
-      plot.xlabel "Population Size"
-      plot.ylabel "Average Stopping Generation"
-      
-      x,y = avg_best_generations.to_a.transpose
-      
-      plot.data << Gnuplot::DataSet.new( [x, y] ) do |ds|
-        ds.with = "lines"
-        ds.notitle
-      end
-    end
+  plotter = Plotter.new(xlabel: "Population Size", ylabel: "Stopping Generation (Average)")  
+  x,y = avg_best_generations.to_a.transpose
+  dataset = Gnuplot::DataSet.new( [x, y] ) do |ds|
+    ds.with = "lines"
+    ds.notitle
   end
+  plotter.plot_dataset dataset
 end
