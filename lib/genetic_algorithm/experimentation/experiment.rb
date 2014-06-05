@@ -24,7 +24,7 @@ module GeneticAlgorithm
   
       case @progress_updates
       when VERBOSE
-        puts "gen\tavg\best\tbestsofar"
+        puts "gen\tavg\tbest\tbestsofar"
       end
       
       n = 0
