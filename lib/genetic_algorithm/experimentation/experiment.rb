@@ -10,6 +10,8 @@ module GeneticAlgorithm
       @algorithm = algorithm
       @update_detail = NONE
       @update_period = 1
+      
+      yield self if block_given?
     end
     
     def self.avg_fitness population
