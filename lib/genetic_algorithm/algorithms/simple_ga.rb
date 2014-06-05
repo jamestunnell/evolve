@@ -21,6 +21,8 @@ module GeneticAlgorithm
         while children.size < n_children
           mom, dad = @selector.select(population,2)
           child1, child2 = mom.cross(dad)
+          mutate child1
+          mutate child2
           child1.reevaluate
           child2.reevaluate
           children.push(child1)
@@ -35,11 +37,6 @@ module GeneticAlgorithm
         # fill in the bottom n_children slots with children, keeping the
         # upper slots unchanged (elitism)
         population[0...children.size] = children
-        
-        population.each do |individual|
-          mutate individual
-        end
-        
         population.sort!
         
         if block_given?
@@ -60,9 +57,6 @@ module GeneticAlgorithm
         mutated = true
         individual.mutate! i
       end
-    end
-    if mutated
-      individual.reevaluate
     end
   end
 end
