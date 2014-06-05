@@ -77,7 +77,7 @@ Gnuplot.open do |gp|
         run = experiment.run(POP_SIZE, seed_fn, stopping_fn)
       end
       runset = RunSet.new(runs)
-      avg_gen = runset.average_generations
+      avg_gen = runset.average_last_generation
       puts "  avg gen = #{avg_gen}"
       avg_gens[square_size] = avg_gen
     end

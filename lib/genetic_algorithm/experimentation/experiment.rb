@@ -13,8 +13,8 @@ module GeneticAlgorithm
       population = Array.new(pop_size) {|i| seed_fn.call() }
       population.sort!
       best_so_far = population.last
-      #avg_fitness_history = { 0 => Experiment.avg_fitness(population) }
-      best_fitness_history = { 0 => best_so_far.fitness }
+      avg_fitnesses = { 0 => Experiment.avg_fitness(population) }
+      best_fitnesses = { 0 => best_so_far.fitness }
   
       if print_progress
         puts "gen\tavg\best\tbestsofar"
@@ -26,21 +26,19 @@ module GeneticAlgorithm
         n += 1
         
         avg_fitness = Experiment.avg_fitness(population)
-        #avg_fitness_history[n] = avg_fitness 
+        avg_fitnesses[n] = avg_fitness 
         
         best = population.last
         if best > best_so_far
           best_so_far = best
-          best_fitness_history[n] = best.fitness
+          best_fitnesses[n] = best.fitness
         end
         
         if print_progress
           puts "#{n}\t#{avg_fitness}\t#{best.fitness}\t#{best_so_far.fitness}"
         end
       end
-      best_fitness_history[n] = best_so_far.fitness
-      
-      return Run.new(n, best_fitness_history, best_so_far)
+      return Run.new(best_so_far, best_fitnesses, avg_fitnesses)
     end
   end
 end

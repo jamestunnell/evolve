@@ -6,61 +6,59 @@ module GeneticAlgorithm
       @runs = runs
     end
     
-    def plot_fitnesses
-      Gnuplot.open do |gp|
-        Gnuplot::Plot.new( gp ) do |plot|
-          plot.title  "Fitness History (over #{@runs.size} runs)"
-          plot.xlabel "Generation"
-          plot.ylabel "Best Fitness (So Far)"
-          
-          @runs.each_index do |i|
-            x = @runs[i].generations
-            y = x.map {|n| @runs[i].fitness_at(n) }
-            
-            plot.data << Gnuplot::DataSet.new( [x, y] ) do |ds|
-              ds.with = "steps"
-              ds.title = "Run #{i}"
-            end
-          end
-          
-        end
-      end    
+    def average_last_generation
+      @runs.map {|run| run.last_generation }.average
     end
     
-    def average_generations
-      @runs.map {|run| run.n_generations }.inject(0,:+) / @runs.size.to_f
+    def plot_best
+      plotter = Plotter.fitness_plotter("Best")
+      plotter.title += " #{@runs.size} runs"
+      plotter.plot_datasets @runs.map {|run| run.best_fitness_dataset }
+    end
+
+    def plot_average
+      plotter = Plotter.fitness_plotter("Average")
+      plotter.title += " #{@runs.size} runs"
+      plotter.plot_datasets @runs.map {|run| run.average_fitness_dataset }
     end
     
-    def average_fitness
-      max_gen = @runs.map {|run| run.generations.max }.max
+    def plot_average_best
+      plotter = Plotter.fitness_plotter("(Average) Best")
+      plotter.title += " #{@runs.size} runs"
+      plotter.plot_dataset average_best_fitness_dataset
+    end
+    
+    def plot_average_average
+      plotter = Plotter.fitness_plotter("(Average) Average")
+      plotter.title += " #{@runs.size} runs"
+      plotter.plot_dataset average_average_fitness_dataset
+    end
+
+    def average_best_fitnesses
+      RunSet.average_fitnesses @runs.map {|run| run.best_fitnesses }
+    end
+    
+    def average_best_fitness_dataset
+      Run.fitness_dataset average_best_fitnesses, "lines", "(Average) Best"
+    end
+    
+    def average_average_fitnesses
+      RunSet.average_fitnesses @runs.map {|run| run.best_fitnesses }
+    end
+    
+    def average_average_fitness_dataset
+      Run.fitness_dataset average_average_fitnesses, "lines", "(Average) Best"
+    end
+    
+    def self.average_fitnesses fitness_histories
+      max_gen = fitness_histories.map {|history| history.keys.max }.max
       Hash[
         (0..max_gen).map do |n|
-          fitnesses = @runs.map {|run| run.fitness_at(n) }
-          avg = fitnesses.inject(0,:+) / @runs.size.to_f
-           [n,avg]
+          fitnesses = fitness_histories.map {|history| Run.fitness_at(history, n) }
+          avg = fitnesses.average
+          [n,avg]
         end
       ]
-    end
-    
-    def best_fitnesses
-      @runs.collect {|run| [run.best_generation, run.best_individual.fitness] }
-    end
-    
-    def plot_average_fitness
-      Gnuplot.open do |gp|
-        Gnuplot::Plot.new( gp ) do |plot|
-          plot.title  "Average Fitness (#{@runs.size} runs)"
-          plot.xlabel "Generation"
-          plot.ylabel "Average of Best Fitness (So Far)"
-          
-          x,y = average_fitness.to_a.transpose
-          
-          plot.data << Gnuplot::DataSet.new( [x, y] ) do |ds|
-            ds.with = "lines"
-            ds.notitle
-          end
-        end
-      end
     end
   end
 end

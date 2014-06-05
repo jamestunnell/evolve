@@ -103,7 +103,7 @@ begin
       experiment.run(pop_size, new_individual, wait_for_optimal)
     end
     runset = RunSet.new(runs)
-    avg_best_generations[pop_size] = runset.average_generations
+    avg_best_generations[pop_size] = runset.average_last_generation
   end
   puts "done"
   

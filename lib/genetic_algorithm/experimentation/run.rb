@@ -2,46 +2,60 @@ require 'gnuplot'
 
 module GeneticAlgorithm
   class Run
-    attr_reader :n_generations, :fitness, :best_individual
+    attr_reader :best_individual, :best_fitnesses, :average_fitnesses
     
-    def initialize n_gen, fitness, best_individual
-      @n_generations = n_gen
-      @fitness = fitness
+    def initialize best_individual, best_fitnesses, avg_fitnesses
       @best_individual = best_individual
+      @best_fitnesses = best_fitnesses
+      @average_fitnesses = avg_fitnesses
     end
     
-    def plot_fitness
-      Gnuplot.open do |gp|
-        Gnuplot::Plot.new( gp ) do |plot|
+    def last_generation
+      [@best_fitnesses.keys.max,@average_fitnesses.keys.max].max
+    end
+    
+    def best_fitness_dataset 
+      Run.fitness_dataset average_fitnesses, "steps", "Best"
+    end
+    
+    def average_fitness_dataset
+      Run.fitness_dataset average_fitnesses, "lines", "Average"
+    end
         
-          plot.title  "Fitness History"
-          plot.xlabel "Generation"
-          plot.ylabel "Best Fitness (So Far)"
-          
-          x = fitness.keys
-          y = x.map {|n| fitness[n] }
-      
-          plot.data << Gnuplot::DataSet.new( [x, y] ) do |ds|
-            ds.with = "steps"
-            ds.notitle
-          end
-        end
+    def plot_best
+      Plotter.fitness_plotter("Best").plot_dataset best_dataset
+    end
+    
+    def plot_average
+      Plotter.fitness_plotter("Average").plot_dataset average_dataset
+    end
+    
+    def plot_all
+      datasets = [ best_fitness_dataset, average_fitness_dataset ]
+      Plotter.fitness_plotter("Best and Average").plot_datasets datasets
+    end
+    
+    def average_fitness_at generation
+      Run.fitness_at @average_fitnesses, generation
+    end
+    
+    def best_fitness_at generation
+      Run.fitness_at @best_fitnesses, generation
+    end
+    
+    def self.fitness_dataset fitnesses, linestyle, linetitle
+      x,y = fitnesses.to_a.transpose
+      Gnuplot::DataSet.new( [x, y] ) do |ds|
+        ds.with = linestyle
+        ds.title = linetitle
       end
     end
     
-    def generations
-      @fitness.keys
-    end
-    
-    def best_generation
-      @fitness.select {|gen,fitness| fitness == @best_individual.fitness }.min[0]
-    end
-    
-    def fitness_at generation
-      unless @fitness.has_key?(generation)
-        generation = generations.select {|n| n < generation }.max
+    def self.fitness_at fitnesses, generation
+      unless fitnesses.has_key?(generation)
+        generation = fitnesses.keys.select {|n| n < generation }.max
       end
-      @fitness[generation]
+      fitnesses[generation]
     end
   end
 end

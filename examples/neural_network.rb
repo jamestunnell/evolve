@@ -1,8 +1,6 @@
 require 'genetic_algorithm'
 require 'matrix'
 
-require 'pry'
-
 include GeneticAlgorithm
 
 # Character recognition using a neural network, where
@@ -40,15 +38,15 @@ class RandomGaussian
   end
 end
 
-class MLP < Array  
+class MLP < Array
+  @@rg = RandomGaussian.new(0,0.1)
+  
   def initialize n_in, n_hidden, n_out
-    rg = RandomGaussian.new(0,0.3)
-    n_weights = (n_in+1) * n_hidden + (n_hidden+1)*n_out
-    values = Array.new(n_weights){ rg.rand }
+    values = Array.new((n_in+1)*n_hidden + (n_hidden+1)*n_out){ @@rg.rand }
     @n_in = n_in
     @n_hidden = n_hidden
     @n_out = n_out
-    @beta = 1
+    @epsilon = 0.0025
     super(values)
   end
 
@@ -58,7 +56,7 @@ class MLP < Array
   
   # x is a vector
   def sigmoid x
-    x.map {|el| 1.0 / (1.0 + Math.exp(-@beta * el)) }
+    x.map {|el| 0.5 * (1 + Math.tanh(el/@epsilon)) }
   end
   
   # x is a vector
@@ -77,9 +75,11 @@ class MLP < Array
     n_inweights = (@n_in+1) * @n_hidden
     in_weights = Matrix.rows(entries[0...n_inweights].each_slice(@n_hidden).to_a)
     hidden_weights = Matrix.rows(entries[n_inweights..-1].each_slice(@n_out).to_a)
+    #in_weights = Matrix.rows(@in_weights)
+    #hidden_weights = Matrix.rows(@hidden_weights)
     
     inputs.unshift(-1)
-    hidden_outputs = signum(Matrix.row_vector(inputs) * in_weights)
+    hidden_outputs = sigmoid(Matrix.row_vector(inputs) * in_weights)
     hidden_outputs = hidden_outputs.to_a.flatten
     
     #binding.pry
@@ -101,7 +101,7 @@ end
 class CharRecognizer < MLP
   include Evaluable
   include PerturbMutation
-  include SwapCrossover
+  include OnepointCrossover
   
   def beta
     0.05
@@ -156,71 +156,65 @@ class CharRecognizer < MLP
   }
   
   N_INPUTS = 25
-  N_OUTPUTS = 5
+  N_OUTPUTS = CODES_TO_CHARS.size
   
   def initialize n_hidden
     super(N_INPUTS,n_hidden,N_OUTPUTS)
   end
   
-  def clone
-    Marshal.load(Marshal.dump(self))
+  def []=(pos,val)
+    @fitness = nil
+    super(pos,val)
   end
 
   def bounds
     unless @bounds
-      @bounds = [-1.0..1.0] * size
+      @bounds = [-4.0..4.0] * size
     end
     @bounds
   end
   
   def evaluate
-    error = Vector.elements([0]*N_OUTPUTS)
+    error = 0.0
     CHARBITSETS.each do |char,bitsets|
       bitsets.each do |bits|
         ideal = [0] * CHARS_TO_CODES.size
         ideal[CHARS_TO_CODES[char]] = 1
         ideal = Vector.elements(ideal)
-        actual = Vector.elements(self.forward(bits, :signum))
+        actual = Vector.elements(self.forward(bits, :linear))
         diff = (ideal - actual)
-        error += diff.map2(diff){|el1,el2| el1*el2 }
+        error += diff.map2(diff){|el1,el2| el1*el2 }.reduce(0,:+)
       end
     end
-    -error.reduce(0,:+)
+    error
+  end
+  
+  def <=> other
+    -super(other)
   end
   
   def recognize in_bits
     outs = self.forward(in_bits.clone, :softmax)
     max_idx = outs.each_with_index.max[1]
     return CODES_TO_CHARS[max_idx]
-    #maxout_bits = outs.map {|out| out.round }
-    #out_bits.inject(0){|r,i| r << 1 | i} # convert array of bits to integer
   end  
 end
 
-TOURNAMENT_SIZE = 2
-SELECTION_PROBABILITY = 0.6
-CROSSOVER_FRACTION = 1
-MUTATION_RATE = 0.01
-POP_SIZE = 24
-NGEN = 100
+TOURNAMENT_SIZE = 4
+SELECTION_PROBABILITY = 0.7
+CROSSOVER_FRACTION = 0.98
+MUTATION_RATE = 0.005
+POP_SIZE = 40
+NGEN = 1000
 
 selector = TournamentSelector.new(TOURNAMENT_SIZE, SELECTION_PROBABILITY)
 algorithm = SimpleGA.new(selector,CROSSOVER_FRACTION,MUTATION_RATE)
 experiment = Experiment.new(algorithm)
 
-N_HIDDEN = 4
+N_HIDDEN = 6
 seed_fn = ->(){ CharRecognizer.new(N_HIDDEN) }
-stop_fn = ->(gen,best){ gen > NGEN }
+stop_fn = ->(gen,best){ best.fitness < 0.25 }
 
-#require 'gnuplot'
-population = Array.new(POP_SIZE) {|i| seed_fn.call() }
-algorithm.evolve(population, NGEN) do |pop|
-  binding.pry
-  #fitnesses = pop.map {|x|x.fitness}
-  #puts fitnesses
-  #puts
-end
-
-#binding.pry
-#run = experiment.run(POP_SIZE,seed_fn,stop_fn,print_progress:true)
-#puts "took #{run.generations.last} generations"
+run = experiment.run(POP_SIZE,seed_fn,stop_fn,print_progress:true)
+puts "took #{run.last_generation} generations"
+run.plot_all
