@@ -13,13 +13,13 @@ module GeneticAlgorithm
     def plot_best
       plotter = Plotter.fitness_plotter("Best")
       plotter.title += " #{@runs.size} runs"
-      plotter.plot_datasets @runs.map {|run| run.best_dataset }
+      plotter.plot_datasets @runs.map {|run| ds = run.best_dataset; ds.notitle; ds }
     end
 
     def plot_average
       plotter = Plotter.fitness_plotter("Average")
       plotter.title += " #{@runs.size} runs"
-      plotter.plot_datasets @runs.map {|run| run.average_dataset }
+      plotter.plot_datasets @runs.map {|run| ds = run.average_dataset; ds.notitle; ds }
     end
     
     def plot_average_best
