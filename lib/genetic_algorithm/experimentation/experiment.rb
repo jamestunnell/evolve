@@ -3,12 +3,13 @@ module GeneticAlgorithm
     NONE = :none
     MINIMAL = :minimal
     VERBOSE = :verbose
-    PROGRESS_UPDATES = [ NONE, MINIMAL, VERBOSE]
+    UPDATE_DETAIL = [ NONE, MINIMAL, VERBOSE]
     
-    attr_accessor :progress_updates
+    attr_accessor :update_detail, :update_period
     def initialize algorithm
       @algorithm = algorithm
-      @progress_updates = NONE
+      @update_detail = NONE
+      @update_period = 1
     end
     
     def self.avg_fitness population
@@ -22,7 +23,7 @@ module GeneticAlgorithm
       avg_fitnesses = { 0 => Experiment.avg_fitness(population) }
       best_fitnesses = { 0 => best_so_far.fitness }
   
-      case @progress_updates
+      case @update_detail
       when VERBOSE
         puts "gen\tavg\tbest\tbestsofar"
       end
@@ -41,11 +42,13 @@ module GeneticAlgorithm
           best_fitnesses[n] = best.fitness
         end
         
-        case @progress_updates
-        when VERBOSE
-          puts "#{n}\t#{avg_fitness}\t#{best.fitness}\t#{best_so_far.fitness}"
-        when MINIMAL
-          print "."
+        if (n % @update_period) == 0
+          case @update_detail
+          when VERBOSE
+            puts "#{n}\t#{avg_fitness}\t#{best.fitness}\t#{best_so_far.fitness}"
+          when MINIMAL
+            print "."
+          end
         end
         
         if block_given?
@@ -53,7 +56,7 @@ module GeneticAlgorithm
         end
       end
       
-      case @progress_updates
+      case @update_detail
       when VERBOSE, MINIMAL
         puts
       end
