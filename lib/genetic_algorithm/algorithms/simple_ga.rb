@@ -36,7 +36,19 @@ module GeneticAlgorithm
         
         # fill in the bottom n_children slots with children, keeping the
         # upper slots unchanged (elitism)
-        population[0...children.size] = children
+        population[0...n_children] = children
+        
+        # mutate elites with a fitness-safe mutation 
+        (n_children...population.size).each do |i|
+          ind = population[i]
+          pre = ind.clone
+          if mutate(ind)
+            ind.reevaluate
+            if ind < pre
+              population[i] = pre # restore original if fitness did not improve
+            end
+          end
+        end
         population.sort!
         
         if block_given?
@@ -58,5 +70,6 @@ module GeneticAlgorithm
         individual.mutate! i
       end
     end
+    return mutated
   end
 end
