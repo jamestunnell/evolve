@@ -1,48 +1,15 @@
 require 'genetic_algorithm'
 require 'matrix'
+require 'set'
 
 include GeneticAlgorithm
 
 # Character recognition using a neural network, where
 # NN weights are trained using a genetic algorithm.
 
-class RandomGaussian
-  def initialize(mean, stddev, rand_helper = lambda { Kernel.rand })
-    @rand_helper = rand_helper
-    @mean = mean
-    @stddev = stddev
-    @valid = false
-    @next = 0
-  end
-
-  def rand
-    if @valid then
-      @valid = false
-      return @next
-    else
-      @valid = true
-      x, y = self.class.gaussian(@mean, @stddev, @rand_helper)
-      @next = y
-      return x
-    end
-  end
-
-  private
-  def self.gaussian(mean, stddev, rand)
-    theta = 2 * Math::PI * rand.call
-    rho = Math.sqrt(-2 * Math.log(1 - rand.call))
-    scale = stddev * rho
-    x = mean + scale * Math.cos(theta)
-    y = mean + scale * Math.sin(theta)
-    return x, y
-  end
-end
-
 class MLP < Array
-  @@rg = RandomGaussian.new(0,0.1)
-  
   def initialize n_in, n_hidden, n_out
-    values = Array.new((n_in+1)*n_hidden + (n_hidden+1)*n_out){ @@rg.rand }
+    values = Array.new((n_in+1)*n_hidden + (n_hidden+1)*n_out){ rand(0.0..0.1) }
     @n_in = n_in
     @n_hidden = n_hidden
     @n_out = n_out
@@ -75,14 +42,11 @@ class MLP < Array
     n_inweights = (@n_in+1) * @n_hidden
     in_weights = Matrix.rows(entries[0...n_inweights].each_slice(@n_hidden).to_a)
     hidden_weights = Matrix.rows(entries[n_inweights..-1].each_slice(@n_out).to_a)
-    #in_weights = Matrix.rows(@in_weights)
-    #hidden_weights = Matrix.rows(@hidden_weights)
     
     inputs.unshift(-1)
     hidden_outputs = sigmoid(Matrix.row_vector(inputs) * in_weights)
     hidden_outputs = hidden_outputs.to_a.flatten
     
-    #binding.pry
     hidden_outputs.unshift(-1)
     outputs = (Matrix.row_vector(hidden_outputs) * hidden_weights)
     
@@ -101,72 +65,49 @@ end
 class CharRecognizer < MLP
   include Evaluable
   include PerturbMutation
-  include OnepointCrossover
+  include TwopointCrossover
   
   def beta
-    0.05
+    0.1
   end
   
   def gamma
-    0.01
+    0.1
   end
   
-  CHARBITSETS = {
-    "A" => [
-      [0,1,1,1,0,1,0,0,0,1,1,1,1,1,1,1,0,0,0,1,1,0,0,0,1],
-      [1,1,1,1,1,1,0,0,0,1,1,1,1,1,1,1,0,0,0,1,1,0,0,0,1],
-      [0,0,1,0,0,0,1,0,1,1,1,1,1,1,1,1,0,0,0,1,1,0,0,0,1]
-    ],
-    "B" => [
-      [1,1,1,1,0,1,0,0,0,1,1,1,1,1,0,1,0,0,0,1,1,1,1,1,0],
-      [0,1,1,1,0,1,0,0,0,1,1,1,1,1,0,1,0,0,0,1,0,1,1,1,0],
-      [0,1,1,1,0,1,0,0,0,1,0,1,1,1,0,1,0,0,0,1,1,1,1,1,0],
-    ],
-    "C" => [
-      [0,1,1,1,0,1,0,0,0,1,1,0,0,0,0,1,0,0,0,1,0,1,1,1,0],
-      [0,0,1,1,0,0,1,0,0,1,1,0,0,0,0,0,1,0,0,1,0,0,1,1,0],
-      [0,0,1,1,1,0,1,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,1,1],
-    ],
-    "D" => [
-      [1,1,1,1,0,1,0,0,0,1,1,0,0,0,1,1,0,0,0,1,1,1,1,1,0],
-      [1,1,1,0,0,1,0,0,1,0,1,0,0,0,1,1,0,0,0,1,1,1,1,1,0],
-      [1,1,1,1,0,1,0,0,0,1,1,0,0,0,1,1,0,0,1,0,1,1,1,0,0],  
-    ],
-    "E" => [
-      [1,1,1,1,1,1,0,0,0,0,1,1,1,0,0,1,0,0,0,0,1,1,1,1,1],
-      [1,1,1,1,0,1,0,0,0,0,1,1,1,0,0,1,0,0,0,0,1,1,1,1,0],
-      [1,1,1,1,1,1,0,0,0,0,1,1,0,0,0,1,0,0,0,0,1,1,1,1,1],
+  def initialize supervised_data, n_hidden, training_fraction = 0.6
+    
+    vec_sizes = Set.new(supervised_data.values.flatten(1).map {|x| x.size })
+    unless vec_sizes.size == 1
+      raise ArgumentError, "Inconsistent training/testing vectors length"
+    end
+    n_inputs = vec_sizes.first
+    
+    chars = supervised_data.keys
+    @n_chars = chars.size
+    @codes_to_chars = Hash[ Array.new(@n_chars){|i| [i,chars[i]] } ]
+    @chars_to_codes = Hash[ Array.new(@n_chars){|i| [chars[i],i] } ]
+    n_outputs = @n_chars
+    
+    @training_data = Hash[
+      supervised_data.map do |char, bitsets|
+        n_training = (training_fraction * bitsets.size).round
+        if n_training == bitsets.size
+          raise ArgumentError, "no bitsets left for testing #{char}"
+        end
+        training_bitsets = bitsets.sample(n_training)
+        [char,training_bitsets]
+      end
     ]
-  }
-  
-  CHARS_TO_CODES = {
-    "A" => 0,
-    "B" => 1,
-    "C" => 2,
-    "D" => 3,
-    "E" => 4
-  }
-  
-  CODES_TO_CHARS = {
-    0 => "A",
-    1 => "B",
-    2 => "C",
-    3 => "D",
-    4 => "E",
-  }
-  
-  N_INPUTS = 25
-  N_OUTPUTS = CODES_TO_CHARS.size
-  
-  def initialize n_hidden
-    super(N_INPUTS,n_hidden,N_OUTPUTS)
+    @testing_data = Hash[
+      supervised_data.map do |char, bitsets|
+        testing_bitsets = bitsets - @training_data[char]
+        [char,testing_bitsets]
+      end
+    ]
+    super(n_inputs,n_hidden,n_outputs)
   end
   
-  def []=(pos,val)
-    @fitness = nil
-    super(pos,val)
-  end
-
   def bounds
     unless @bounds
       @bounds = [-4.0..4.0] * size
@@ -176,12 +117,12 @@ class CharRecognizer < MLP
   
   def evaluate
     error = 0.0
-    CHARBITSETS.each do |char,bitsets|
+    @training_data.each do |char,bitsets|
       bitsets.each do |bits|
-        ideal = [0] * CHARS_TO_CODES.size
-        ideal[CHARS_TO_CODES[char]] = 1
+        ideal = [0] * @chars_to_codes.size
+        ideal[@chars_to_codes[char]] = 1
         ideal = Vector.elements(ideal)
-        actual = Vector.elements(self.forward(bits, :linear))
+        actual = Vector.elements(self.forward(bits, :softmax))
         diff = (ideal - actual)
         error += diff.map2(diff){|el1,el2| el1*el2 }.reduce(0,:+)
       end
@@ -189,32 +130,106 @@ class CharRecognizer < MLP
     error
   end
   
-  def <=> other
+  def <=>(other)
     -super(other)
   end
   
   def recognize in_bits
     outs = self.forward(in_bits.clone, :softmax)
     max_idx = outs.each_with_index.max[1]
-    return CODES_TO_CHARS[max_idx]
-  end  
+    return @codes_to_chars[max_idx]
+  end
+  
+  def confusion_matrix
+    conf_matr = Array.new(@n_chars){Array.new(@n_chars){ 0 }}
+    
+    @testing_data.each do |char, bitsets|
+      actual_class = @chars_to_codes[char]
+      bitsets.each do |bitset|
+        predicted_char = recognize(bitset)
+        predicted_class = @chars_to_codes[predicted_char]
+        conf_matr[actual_class][predicted_class] += 1
+      end
+    end
+    
+    Matrix.rows(conf_matr)
+  end
 end
 
-TOURNAMENT_SIZE = 4
+#FIVE_BY_FIVE = {
+#  "A" => [
+#    [0,1,1,1,0,1,0,0,0,1,1,1,1,1,1,1,0,0,0,1,1,0,0,0,1],
+#    [1,1,1,1,1,1,0,0,0,1,1,1,1,1,1,1,0,0,0,1,1,0,0,0,1],
+#    [0,0,1,0,0,0,1,0,1,1,1,1,1,1,1,1,0,0,0,1,1,0,0,0,1]
+#  ],
+#  "B" => [
+#    [1,1,1,1,0,1,0,0,0,1,1,1,1,1,0,1,0,0,0,1,1,1,1,1,0],
+#    [0,1,1,1,0,1,0,0,0,1,1,1,1,1,0,1,0,0,0,1,0,1,1,1,0],
+#    [0,1,1,1,0,1,0,0,0,1,0,1,1,1,0,1,0,0,0,1,1,1,1,1,0],
+#  ],
+#  "C" => [
+#    [0,1,1,1,0,1,0,0,0,1,1,0,0,0,0,1,0,0,0,1,0,1,1,1,0],
+#    [0,0,1,1,0,0,1,0,0,1,1,0,0,0,0,0,1,0,0,1,0,0,1,1,0],
+#    [0,0,1,1,1,0,1,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,1,1],
+#  ],
+#  "D" => [
+#    [1,1,1,1,0,1,0,0,0,1,1,0,0,0,1,1,0,0,0,1,1,1,1,1,0],
+#    [1,1,1,0,0,1,0,0,1,0,1,0,0,0,1,1,0,0,0,1,1,1,1,1,0],
+#    [1,1,1,1,0,1,0,0,0,1,1,0,0,0,1,1,0,0,1,0,1,1,1,0,0],
+#  ],
+#  "E" => [
+#    [1,1,1,1,1,1,0,0,0,0,1,1,1,0,0,1,0,0,0,0,1,1,1,1,1],
+#    [1,1,1,1,0,1,0,0,0,0,1,1,1,0,0,1,0,0,0,0,1,1,1,1,0],
+#    [1,1,1,1,1,1,0,0,0,0,1,1,0,0,0,1,0,0,0,0,1,1,1,1,1],
+#  ]
+#}
+
+SEVEN_BY_SEVEN = {
+  "A" => [
+    [0,0,0,1,0,0,0,0,0,1,0,1,0,0,0,1,0,0,0,1,0,1,1,1,1,1,1,1,1,0,0,0,0,0,1,1,0,0,0,0,0,1,1,0,0,0,0,0,1],
+    [0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,1,0,0,0,1,0,1,1,1,1,1,1,1,1,0,0,0,0,0,1,1,0,0,0,0,0,1,1,0,0,0,0,0,1],
+    [0,0,1,1,1,0,0,0,1,0,0,0,1,0,1,0,0,0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,1,1,0,0,0,0,0,1,1,0,0,0,0,0,1],
+    [0,0,1,1,1,0,0,0,1,0,0,0,1,0,1,0,0,0,0,0,1,1,0,0,0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,1,1,0,0,0,0,0,1],
+    [0,0,0,1,0,0,0,0,0,1,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,1,1,0,0,0,0,0,1],
+    [0,0,0,1,0,0,0,0,0,1,0,1,0,0,0,1,0,0,0,1,0,0,1,1,1,1,1,1,0,1,0,0,0,0,1,0,1,0,0,0,0,1,0,1,0,0,0,0,1],
+    [0,0,0,1,0,0,0,0,0,1,0,1,0,0,0,1,0,0,0,1,0,1,1,1,1,1,1,0,1,0,0,0,0,1,0,1,0,0,0,0,1,0,1,0,0,0,0,1,0],
+    [0,0,1,1,1,0,0,0,1,0,0,0,1,0,0,1,0,0,0,0,1,0,1,1,1,1,1,1,0,1,0,0,0,0,1,0,1,0,0,0,0,1,0,1,0,0,0,0,1],
+    [0,0,1,1,1,0,0,0,1,0,0,0,1,0,1,0,0,0,0,1,0,1,1,1,1,1,1,0,1,0,0,0,0,1,0,1,0,0,0,0,1,0,1,0,0,0,0,1,0]
+  ],
+  "B" => [
+    [1,1,1,1,1,1,1,1,0,0,0,0,0,1,1,0,0,0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,1,1,0,0,0,0,0,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,0,1,0,0,0,0,0,1,1,0,0,0,0,0,1,1,1,1,1,1,1,0,1,0,0,0,0,0,1,1,0,0,0,0,0,1,1,1,1,1,1,1,0],
+    [1,1,1,1,1,1,0,1,0,0,0,0,0,1,1,0,0,0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,1,1,0,0,0,0,0,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,0,1,0,0,0,0,1,0,1,0,0,0,0,1,0,1,1,1,1,1,1,0,1,0,0,0,0,0,1,1,0,0,0,0,0,1,1,1,1,1,1,1,0],
+    [1,1,1,1,1,1,1,1,0,0,0,0,0,1,1,0,0,0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,1,1,0,0,0,0,0,1,1,1,1,1,1,1,0],
+    [1,1,1,1,1,0,0,1,0,0,0,0,1,0,1,0,0,0,0,1,0,1,1,1,1,1,1,0,1,0,0,0,0,0,1,1,0,0,0,0,0,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,0,1,0,0,0,0,0,1,1,0,0,0,0,0,1,1,1,1,1,1,1,0,1,0,0,0,0,0,1,1,0,0,0,0,0,1,0,1,1,1,1,1,1],
+    [0,1,1,1,1,1,0,1,0,0,0,0,0,1,1,0,0,0,0,0,1,1,1,1,1,1,1,0,1,0,0,0,0,0,1,1,0,0,0,0,0,1,1,1,1,1,1,1,1],
+  ]
+}
+  
+TOURNAMENT_SIZE = 3
 SELECTION_PROBABILITY = 0.7
-CROSSOVER_FRACTION = 0.98
-MUTATION_RATE = 0.005
-POP_SIZE = 40
+CROSSOVER_FRACTION = 0.7
+MUTATION_RATE = 0.05
+POP_SIZE = 20
 NGEN = 1000
 
 selector = TournamentSelector.new(TOURNAMENT_SIZE, SELECTION_PROBABILITY)
 algorithm = SimpleGA.new(selector,CROSSOVER_FRACTION,MUTATION_RATE)
-experiment = Experiment.new(algorithm)
+experiment = Experiment.new(algorithm) do |exp|
+  exp.update_detail = Experiment::VERBOSE
+  exp.update_period = 20
+end
 
 N_HIDDEN = 6
-seed_fn = ->(){ CharRecognizer.new(N_HIDDEN) }
-stop_fn = ->(gen,best){ best.fitness < 0.25 }
+TRAINING_FRACTION = 0.6
+seed_fn = lambda do
+  CharRecognizer.new(SEVEN_BY_SEVEN, N_HIDDEN, TRAINING_FRACTION)
+end
+stop_fn = ->(gen,best){ best.fitness < 5e-1 }
 
-run = experiment.run(POP_SIZE,seed_fn,stop_fn,print_progress:true)
+run = experiment.run(POP_SIZE,seed_fn,stop_fn)
 puts "took #{run.last_generation} generations"
 run.plot_all
+puts run.best_individual.confusion_matrix

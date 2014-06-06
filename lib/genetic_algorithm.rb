@@ -16,3 +16,5 @@ require 'genetic_algorithm/experimentation/run'
 require 'genetic_algorithm/experimentation/run_set'
 require 'genetic_algorithm/experimentation/experiment'
 require 'genetic_algorithm/experimentation/plotter'
+
+require 'genetic_algorithm/random_gaussian'
