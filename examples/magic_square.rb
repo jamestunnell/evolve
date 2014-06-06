@@ -1,10 +1,14 @@
 require 'genetic_algorithm'
 include GeneticAlgorithm
-
+require 'pry'
 class MagicSquare < Array
   include Evaluable
   include SwapMutation
   include SwapCrossover
+  
+  def gamma
+    0.1
+  end
   
   attr_reader :n, :m
   def initialize n, values=[]
@@ -24,6 +28,14 @@ class MagicSquare < Array
   end
   
   def evaluate
+    deviations.sum
+  end
+  
+  def <=> other
+    -super(other)
+  end
+  
+  def deviations
     n = @n
     m = @m
     
@@ -38,54 +50,28 @@ class MagicSquare < Array
     l_diag_sum = Array.new(n){|i| matrix[i,i] }.inject(0,:+)
     r_diag_sum = Array.new(n){|i| matrix[i,n-i-1] }.inject(0,:+)
     sums = row_sums + col_sums + [l_diag_sum, r_diag_sum]
-    
-    total = sums.inject(0,:+)
-    ideal_total = sums.size * m
-    max_deviation_total = sums.size * (m-n)
-    deviation_total = (total-ideal_total).abs
-    (max_deviation_total - deviation_total)/max_deviation_total.to_f
+    sums.map {|sum| (sum-m).abs }
   end
 end
 
-TOURNAMENT_SIZE = 10
+CROSSOVER_FRACTION = 0.9
+MUTATION_RATE = 0.02
+POP_SIZE = 40
+TOURNAMENT_SIZE = (0.1 * POP_SIZE).round
 SELECTION_PROBABILITY = 0.6
-CROSSOVER_FRACTION = 0.75
-MUTATION_RATE = 0.2
-POP_SIZE = 50
 
 selector = TournamentSelector.new(TOURNAMENT_SIZE, SELECTION_PROBABILITY)
 algorithm = SimpleGA.new(selector,CROSSOVER_FRACTION,MUTATION_RATE)
-experiment = Experiment.new(algorithm)
+experiment = Experiment.new(algorithm) do |exp|
+  exp.update_detail = Experiment::VERBOSE
+  exp.update_period = 20
+end
 
-Gnuplot.open do |gp|
-  Gnuplot::Plot.new( gp ) do |plot|
-    plot.notitle
-    plot.xlabel "Square Size"
-    plot.ylabel "Average Generations"
-    
-    n_runs = 16
-    puts "n_runs = #{n_runs}\n"
+(3..5).each do |square_size|
+  seed_fn = ->(){ MagicSquare.new(square_size) }
+  stopping_fn = ->(gen,best){ best.fitness == 0 }
   
-    avg_gens = {}  
-    stopping_fn = ->(gen,best){ best.fitness == 1 }
-
-    (4..24).step(2) do |square_size|
-      seed_fn = ->(){ MagicSquare.new(square_size) }
-      puts "  square size = #{square_size}"
-      
-      runs = Array.new(n_runs) do |i|
-        run = experiment.run(POP_SIZE, seed_fn, stopping_fn)
-      end
-      runset = RunSet.new(runs)
-      avg_gen = runset.average_last_generation
-      puts "  avg gen = #{avg_gen}"
-      avg_gens[square_size] = avg_gen
-    end
-    
-    x,y = avg_gens.to_a.transpose
-    plot.data << Gnuplot::DataSet.new( [x, y] ) do |ds|
-      ds.with = "lines"
-      ds.notitle
-    end
-  end
+  run = experiment.run(POP_SIZE, seed_fn, stopping_fn)
+  puts "took #{run.last_generation} generations"
+  run.plot_all
 end
