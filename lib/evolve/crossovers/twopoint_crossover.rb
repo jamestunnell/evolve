@@ -1,4 +1,4 @@
-module GeneticAlgorithm
+module Evolve
   #requires that the #size, #clone, and #[] methods are implemented
   module TwopointCrossover
     def cross other

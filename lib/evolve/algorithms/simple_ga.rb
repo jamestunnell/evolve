@@ -1,4 +1,4 @@
-module GeneticAlgorithm
+module Evolve
   # Maintains a constant population between generations. Performs selection,
   # crossover, and mutation. Preserves elite individuals if crossover_fraction
   # is < 1.

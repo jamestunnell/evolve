@@ -9,7 +9,7 @@ describe UniformMutation do
         return [0...50]*100
       end
       @a.extend(UniformMutation)
-      @a.mutate!
+      @a.mutate!(0)
     end
     
     it 'should cause some modification' do

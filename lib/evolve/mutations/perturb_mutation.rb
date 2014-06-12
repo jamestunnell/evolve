@@ -1,4 +1,4 @@
-module GeneticAlgorithm
+module Evolve
   # Requires that the #size, #bounds, and #[]= methods are implemented. If desired,
   # #beta can be implemented to override the default value.
   module PerturbMutation

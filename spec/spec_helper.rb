@@ -1,4 +1,4 @@
 require 'rspec'
-require 'genetic_algorithm'
+require 'evolve'
 
-include GeneticAlgorithm
+include Evolve

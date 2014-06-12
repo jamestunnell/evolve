@@ -1,7 +1,7 @@
 require 'spec_helper'
-require 'genetic_algorithm'
+require 'evolve'
 
-describe GeneticAlgorithm do
+describe Evolve do
   it "should have a VERSION constant" do
     subject.const_get('VERSION').should_not be_empty
   end

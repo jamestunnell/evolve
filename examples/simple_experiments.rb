@@ -1,5 +1,5 @@
-require 'genetic_algorithm'
-include GeneticAlgorithm
+require 'evolve'
+include Evolve
 require 'pry'
 
 class Individual < Array

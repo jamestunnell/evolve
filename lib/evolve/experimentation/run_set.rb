@@ -1,6 +1,6 @@
 require 'gnuplot'
 
-module GeneticAlgorithm
+module Evolve
   class RunSet
     def initialize runs
       @runs = runs

@@ -1,8 +1,8 @@
-require 'genetic_algorithm'
+require 'evolve'
 require 'matrix'
 require 'set'
 
-include GeneticAlgorithm
+include Evolve
 
 # Character recognition using a neural network, where
 # NN weights are trained using a genetic algorithm.

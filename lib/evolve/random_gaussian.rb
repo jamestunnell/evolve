@@ -1,4 +1,4 @@
-module GeneticAlgorithm
+module Evolve
   class RandomGaussian
     def initialize(mean, stddev, rand_helper = lambda { Kernel.rand })
       @rand_helper = rand_helper

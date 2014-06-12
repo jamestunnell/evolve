@@ -1,6 +1,6 @@
 require 'gnuplot'
 
-module GeneticAlgorithm
+module Evolve
   class Run
     attr_reader :best_individual, :best, :average
     

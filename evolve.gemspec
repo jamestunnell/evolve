@@ -1,16 +1,16 @@
 # -*- encoding: utf-8 -*-
 
-require File.expand_path('../lib/genetic_algorithm/version', __FILE__)
+require File.expand_path('../lib/evolve/version', __FILE__)
 
 Gem::Specification.new do |gem|
-  gem.name          = "genetic_algorithm"
-  gem.version       = GeneticAlgorithm::VERSION
+  gem.name          = "evolve"
+  gem.version       = Evolve::VERSION
   gem.summary       = %q{Basic genetic algorithm framework, suitable for most experiments.}
   gem.description   = %q{Basic genetic algorithm framework, suitable for most experiments.}
   gem.license       = "MIT"
   gem.authors       = ["James Tunnell"]
   gem.email         = "jamestunnell@gmail.com"
-  gem.homepage      = "https://rubygems.org/gems/genetic_algorithm"
+  gem.homepage      = "https://rubygems.org/gems/evolve"
 
   gem.files         = `git ls-files`.split($/)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }

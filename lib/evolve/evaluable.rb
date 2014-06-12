@@ -1,4 +1,4 @@
-module GeneticAlgorithm
+module Evolve
   # requires that the #evaluate method be implemented.
   module Evaluable
     include Comparable

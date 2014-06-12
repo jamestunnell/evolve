@@ -1,4 +1,4 @@
-module GeneticAlgorithm
+module Evolve
   class TournamentSelector
     def initialize tournament_size, selection_probability
       @k = tournament_size

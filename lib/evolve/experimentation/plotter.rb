@@ -1,4 +1,4 @@
-module GeneticAlgorithm
+module Evolve
   class Plotter
     attr_accessor :title, :xlabel, :ylabel
     def initialize title: "", xlabel: "x", ylabel: "y" 

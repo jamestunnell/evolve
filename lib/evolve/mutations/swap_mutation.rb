@@ -1,4 +1,4 @@
-module GeneticAlgorithm
+module Evolve
   # Requires that the #size and #[]= methods are implemented.
   module SwapMutation
     # swaps two values at random positions

@@ -1,4 +1,4 @@
-module GeneticAlgorithm
+module Evolve
   class Experiment
     NONE = :none
     MINIMAL = :minimal
